@@ -184,7 +184,14 @@ function AuthScreen({ onAuthenticated }) {
     setMessage('');
     try {
       await clsUserBusiness.RegisterUser({ user_name: username, email, password });
-      setMessage('Account created! Signing you in…');
+      // Supabase signs the new user in automatically; sign back out so they
+      // land on the login screen and confirm their credentials manually.
+      try { await clsUserBusiness.LogoutUser(); } catch (_) {}
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      switchMode('login');
+      setMessage('Account created! Please log in.');
     } catch (err) {
       setError(err.message);
     }
@@ -941,7 +948,7 @@ export default function Home() {
           id: r.generated_id,
           input: r.original_prompt,
           result: r.improved_prompt,
-          mode: 'general',
+          mode: r.mode || 'general',
           timestamp: new Date(r.created_at).toLocaleString(),
         })));
       })
@@ -955,12 +962,13 @@ export default function Home() {
           user_id: session.id,
           original_prompt: inputText,
           improved_prompt: resultText,
+          mode: selectedMode,
         });
         const normalized = {
           id: saved.generated_id,
           input: saved.original_prompt,
           result: saved.improved_prompt,
-          mode: selectedMode,
+          mode: saved.mode || selectedMode,
           timestamp: new Date(saved.created_at).toLocaleString(),
         };
         setHistory((prev) => [normalized, ...prev].slice(0, 20));
@@ -993,6 +1001,7 @@ export default function Home() {
           type: file.type || 'application/octet-stream',
           size: file.size,
           kind,
+          url: URL.createObjectURL(file),
         };
 
         if (kind === 'image') {
@@ -1509,17 +1518,26 @@ export default function Home() {
                 </button>
               </div>
               {attachedItem?.name && (
-                <span style={{
-                  maxWidth: '100%',
-                  color: '#71717a',
-                  fontSize: 11,
-                  lineHeight: 1.4,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
+                <button
+                  type="button"
+                  onClick={() => setAttachmentPreviewOpen(true)}
+                  style={{
+                    maxWidth: '100%',
+                    color: '#71717a',
+                    fontSize: 11,
+                    lineHeight: 1.4,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
                   {attachedItem.name}
-                </span>
+                </button>
               )}
             </div>
           )}
@@ -1680,7 +1698,7 @@ export default function Home() {
         )}
       </main>
 
-      {false && attachmentPreviewOpen && attachedItem && (
+      {attachmentPreviewOpen && attachedItem && (
         <div
           role="presentation"
           onMouseDown={(event) => {

@@ -11,24 +11,44 @@ const LANGUAGE_NAMES = {
   ar: 'Arabic',
 };
 
-const MODE_INSTRUCTIONS = {
+// Used when the user attaches an image or file — the prompt is built from that content.
+const ATTACHMENT_MODE_INSTRUCTIONS = {
   general: 'Create a content-aware descriptive analysis. Accurately describe what is visible or present in the uploaded content, including people, appearance, clothing, facial features if visible, hair, objects, product type, setting, colors, lighting, composition, mood, context, document purpose, and notable details. Do not be generic.',
   coding: 'Create a coding-oriented prompt based on the uploaded content. If it is a UI, screenshot, layout, product view, or design, turn it into a technical build/recreation prompt with components, layout, styling, data, interactions, edge cases, and expected output. If it is a programming-related file, generate a prompt for analysis, improvement, explanation, debugging, testing, or implementation.',
   writing: 'Create a writing-oriented prompt based on the uploaded content. The prompt should help write a description, article, caption, story, explanation, summary, or other text output using the actual content details. Focus on audience, tone, structure, and writing goal.',
   marketing: 'Create a marketing-oriented prompt based on the uploaded content. If it is a product image or product file, focus on promotional copy, audience, selling points, positioning, message, benefits, and presentation. For other content, turn the real content into a useful branding, advertising, or campaign prompt.',
 };
 
-function systemPrompt(mode, language) {
+// Used for plain typed ideas/prompts with no attachment — the core "enhance my prompt" feature.
+const TEXT_MODE_INSTRUCTIONS = {
+  general: 'Rewrite the user’s rough idea into a clear, detailed, and effective prompt. Improve structure, specificity, and clarity while fully preserving the original intent. Add useful context, constraints, and desired output format when helpful.',
+  coding: 'Rewrite the user’s idea into a precise, technical coding prompt. Clarify requirements, inputs/outputs, constraints, edge cases, tech stack (if implied), and the expected result.',
+  writing: 'Rewrite the user’s idea into an effective writing prompt. Clarify the target audience, tone, structure, length, and the writing goal.',
+  marketing: 'Rewrite the user’s idea into an effective marketing prompt. Clarify the target audience, offer, key message, tone, and desired outcome.',
+};
+
+function systemPrompt(mode, language, hasAttachment) {
   const outputLanguage = LANGUAGE_NAMES[language] || language || 'the selected language';
+
+  if (hasAttachment) {
+    return [
+      'You are a content-aware prompt engineer.',
+      'Use the actual uploaded content as the source of truth.',
+      'Never base the result only on the file name, extension, or MIME type.',
+      'If the upload is an image, inspect and describe the visible content.',
+      'If the upload is a file, analyze the extracted file content and mention the file type naturally when useful.',
+      'Return only the generated result with no preamble.',
+      `Write the result in ${outputLanguage}.`,
+      ATTACHMENT_MODE_INSTRUCTIONS[mode] || ATTACHMENT_MODE_INSTRUCTIONS.general,
+    ].join(' ');
+  }
+
   return [
-    'You are a content-aware prompt engineer.',
-    'Use the actual uploaded content as the source of truth.',
-    'Never base the result only on the file name, extension, or MIME type.',
-    'If the upload is an image, inspect and describe the visible content.',
-    'If the upload is a file, analyze the extracted file content and mention the file type naturally when useful.',
+    'You are an expert prompt engineer.',
+    'Turn the user’s rough idea into a precise, effective, ready-to-use prompt.',
     'Return only the generated result with no preamble.',
     `Write the result in ${outputLanguage}.`,
-    MODE_INSTRUCTIONS[mode] || MODE_INSTRUCTIONS.general,
+    TEXT_MODE_INSTRUCTIONS[mode] || TEXT_MODE_INSTRUCTIONS.general,
   ].join(' ');
 }
 
@@ -64,7 +84,7 @@ export async function POST(request) {
     }
 
     const messages = [
-      { role: 'system', content: systemPrompt(mode, language) },
+      { role: 'system', content: systemPrompt(mode, language, Boolean(attachment)) },
     ];
     let model = TEXT_MODEL;
 

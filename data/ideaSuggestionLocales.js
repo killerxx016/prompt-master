@@ -1,4 +1,5 @@
 ﻿import { IDEA_SUGGESTIONS } from './ideaSuggestions.js';
+import FULL_AI_TRANSLATIONS from './fullIdeaTranslations.json';
 
 const SECTION_TRANSLATIONS = {
   tr: { Images: 'Görseller', Video: 'Video', 'Social Media': 'Sosyal Medya', Music: 'Müzik', Programming: 'Programlama', Writing: 'Yazı', Marketing: 'Pazarlama' },
@@ -132,10 +133,12 @@ function translateLooseText(text, language) {
   translated = translated.replace(/\b[A-Za-z][A-Za-z-]*\b/g, (word) => {
     const lower = word.toLowerCase();
     if (terms[lower] !== undefined) return terms[lower];
-    return language === 'ar' ? '' : word;
+    // Unknown word: keep it as-is instead of dropping it. Dropping words left
+    // gaps that broke sentence structure (missing words, double spaces).
+    return word;
   });
 
-  return translated;
+  return translated.replace(/\s+/g, ' ').trim();
 }
 
 function translateTitleText(title, language) {
@@ -228,6 +231,14 @@ const ITEM_TRANSLATIONS = {
   },
 };
 
+// Merge in the AI-generated, full-quality translations (data/fullIdeaTranslations.json).
+// These take priority over the hand-written entries above when both exist for the same id.
+for (const lang of ['ar', 'tr']) {
+  for (const [id, entry] of Object.entries(FULL_AI_TRANSLATIONS[lang] || {})) {
+    ITEM_TRANSLATIONS[lang][id] = entry;
+  }
+}
+
 function titleLabel(item, language) {
   if (ITEM_TRANSLATIONS[language]?.[item.id]?.title) return ITEM_TRANSLATIONS[language][item.id].title;
 
@@ -303,7 +314,9 @@ function buildLocale(language) {
     category: typeLabel(item.type, language),
     useCase: useCaseLabel(item, language),
     promptText: promptLabel(item, language),
-    tags: translateTags(item.tags || [], language),
+    tags: (Array.isArray(ITEM_TRANSLATIONS[language]?.[item.id]?.tags) && ITEM_TRANSLATIONS[language][item.id].tags.length)
+      ? ITEM_TRANSLATIONS[language][item.id].tags
+      : translateTags(item.tags || [], language),
   }]));
 }
 
