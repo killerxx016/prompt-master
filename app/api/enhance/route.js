@@ -2,7 +2,10 @@ import Groq from 'groq-sdk';
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const TEXT_MODEL = 'llama-3.3-70b-versatile';
+// llama-3.1-8b-instant has a 500K tokens/day free limit vs 100K for the 70b
+// model, so plain-text enhance requests are far less likely to hit the daily
+// cap. Same model family/behavior, just smaller — no new output-format risk.
+const TEXT_MODEL = 'llama-3.1-8b-instant';
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 const LANGUAGE_NAMES = {
