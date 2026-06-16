@@ -17,7 +17,7 @@ const TEXT = {
   en: {
     poweredBy: 'Powered by Claude',
     title: 'Enhance Your Prompts',
-    subtitle: 'Turn rough ideas into precise, effective prompts with AI.',
+    subtitle: 'Turn rough ideas into precise, effective prompts with Prompt Master.',
     placeholder: 'Paste your rough idea or prompt here...',
     chars: 'chars',
     shortcut: 'Ctrl+Enter',
@@ -38,7 +38,7 @@ const TEXT = {
   tr: {
     poweredBy: 'Claude ile desteklenir',
     title: 'Promptlarını Geliştir',
-    subtitle: 'Ham fikirleri yapay zeka ile net ve etkili promptlara dönüştür.',
+    subtitle: 'Ham fikirleri Prompt Master ile net ve etkili promptlara dönüştür.',
     placeholder: 'Ham fikrini veya promptunu buraya yapıştır...',
     chars: 'karakter',
     shortcut: 'Ctrl+Enter',
@@ -59,7 +59,7 @@ const TEXT = {
   ar: {
     poweredBy: 'مدعوم من Claude',
     title: 'حسّن مطالباتك',
-    subtitle: 'حوّل الأفكار الأولية إلى مطالبات دقيقة وفعالة باستخدام الذكاء الاصطناعي.',
+    subtitle: 'حوّل الأفكار الأولية إلى مطالبات دقيقة وفعالة باستخدام Prompt Master.',
     placeholder: 'الصق فكرتك أو المطالبة الأولية هنا...',
     chars: 'حرف',
     shortcut: 'Ctrl+Enter',
