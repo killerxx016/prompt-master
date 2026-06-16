@@ -1047,16 +1047,19 @@ export default function Home() {
     setResult('');
 
     try {
-      const requestText = input.trim() || (attachedItem ? `Uploaded ${attachedItem.kind}` : '');
+      // Send the user's real (possibly empty) text — the backend decides whether
+      // there's an actual instruction to follow or just an attachment to describe.
+      const userText = input.trim();
       const res = await fetch('/api/enhance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: requestText, mode, language, attachment: attachedItem }),
+        body: JSON.stringify({ text: userText, mode, language, attachment: attachedItem }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data.result);
-      if (!temporaryChat) await saveToHistory(requestText, data.result, mode);
+      const historyLabel = userText || (attachedItem ? `Uploaded ${attachedItem.kind}` : '');
+      if (!temporaryChat) await saveToHistory(historyLabel, data.result, mode);
     } catch (err) {
       setError(err.message);
     } finally {
