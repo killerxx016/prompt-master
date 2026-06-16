@@ -27,7 +27,7 @@ const TEXT = {
     enhancedPrompt: 'Enhanced Prompt',
     copied: 'Copied!',
     copy: 'Copy',
-    recent: 'Recent (click to reload)',
+    recent: 'Recent',
     modes: {
       general: 'General',
       coding: 'Coding',
@@ -48,7 +48,7 @@ const TEXT = {
     enhancedPrompt: 'Geliştirilmiş Prompt',
     copied: 'Kopyalandı!',
     copy: 'Kopyala',
-    recent: 'Son kullanılanlar (yeniden yüklemek için tıkla)',
+    recent: 'Son kullanılanlar',
     modes: {
       general: 'Genel',
       coding: 'Kodlama',
@@ -69,7 +69,7 @@ const TEXT = {
     enhancedPrompt: 'المطالبة المحسّنة',
     copied: 'تم النسخ!',
     copy: 'نسخ',
-    recent: 'الأحدث (انقر لإعادة التحميل)',
+    recent: 'الأحدث',
     modes: {
       general: 'عام',
       coding: 'برمجة',
