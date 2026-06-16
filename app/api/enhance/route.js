@@ -11,6 +11,12 @@ const LANGUAGE_NAMES = {
   ar: 'Arabic',
 };
 
+const BUSY_MESSAGE = {
+  en: "We're getting a lot of requests right now. Please try again in a few minutes.",
+  tr: 'Şu anda çok fazla istek alıyoruz. Lütfen birkaç dakika sonra tekrar deneyin.',
+  ar: 'يوجد ضغط كبير على الخدمة حاليًا. الرجاء المحاولة مرة أخرى بعد بضع دقائق.',
+};
+
 // Used when the user attaches an image/file and types NO instruction — just describe it.
 const ATTACHMENT_MODE_INSTRUCTIONS = {
   general: 'Create a content-aware descriptive analysis. Accurately describe what is visible or present in the uploaded content, including people, appearance, clothing, facial features if visible, hair, objects, product type, setting, colors, lighting, composition, mood, context, document purpose, and notable details. Do not be generic.',
@@ -99,8 +105,10 @@ function buildTextUserMessage(text, attachment) {
 }
 
 export async function POST(request) {
+  let requestLanguage = 'en';
   try {
     const { text = '', mode = 'general', language = 'en', attachment = null } = await request.json();
+    requestLanguage = language;
     if (!text.trim() && !attachment) {
       return Response.json({ error: 'Text or upload is required' }, { status: 400 });
     }
@@ -145,6 +153,14 @@ export async function POST(request) {
     return Response.json({ result });
   } catch (error) {
     console.error('API error:', error);
+    const status = error?.status || error?.response?.status;
+    const isRateLimited = status === 429 || /rate_limit|429/i.test(error?.message || '');
+    if (isRateLimited) {
+      return Response.json(
+        { error: BUSY_MESSAGE[requestLanguage] || BUSY_MESSAGE.en, busy: true },
+        { status: 429 }
+      );
+    }
     return Response.json({ error: error.message || 'Failed to enhance prompt' }, { status: 500 });
   }
 }
