@@ -346,15 +346,15 @@ function AuthScreen({ onAuthenticated }) {
 const TEMPORARY_TEXT = {
   en: {
     button: 'Temporary Chat',
-    active: 'Temporary chat is on. This prompt will not be saved.',
+    active: 'Temporary chat is on.',
   },
   tr: {
     button: 'Ge\u00e7ici Sohbet',
-    active: 'Ge\u00e7ici sohbet a\u00e7\u0131k. Bu prompt kaydedilmeyecek.',
+    active: 'Ge\u00e7ici sohbet a\u00e7\u0131k.',
   },
   ar: {
     button: '\u0645\u062d\u0627\u062f\u062b\u0629 \u0645\u0624\u0642\u062a\u0629',
-    active: '\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629 \u0627\u0644\u0645\u0624\u0642\u062a\u0629 \u0645\u0641\u0639\u0644\u0629. \u0644\u0646 \u064a\u062a\u0645 \u062d\u0641\u0638 \u0647\u0630\u0627 \u0627\u0644\u0645\u0637\u0644\u0628.',
+    active: '\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629 \u0627\u0644\u0645\u0624\u0642\u062a\u0629 \u0645\u0641\u0639\u0644\u0629.',
   },
 };
 
@@ -1059,7 +1059,7 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data.result);
       const historyLabel = userText || (attachedItem ? `Uploaded ${attachedItem.kind}` : '');
-      if (!temporaryChat) await saveToHistory(historyLabel, data.result, mode);
+      await saveToHistory(historyLabel, data.result, mode);
     } catch (err) {
       setError(err.message);
     } finally {
