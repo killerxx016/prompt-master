@@ -27,6 +27,9 @@ const TEXT = {
     enhancedPrompt: 'Enhanced Prompt',
     copied: 'Copied!',
     copy: 'Copy',
+    translate: 'Translate',
+    translating: 'Translating...',
+    original: 'Original',
     recent: 'Recent',
     modes: {
       general: 'General',
@@ -48,6 +51,9 @@ const TEXT = {
     enhancedPrompt: 'Geliştirilmiş Prompt',
     copied: 'Kopyalandı!',
     copy: 'Kopyala',
+    translate: 'Çevir',
+    translating: 'Çevriliyor...',
+    original: 'Orijinal',
     recent: 'Son kullanılanlar',
     modes: {
       general: 'Genel',
@@ -69,6 +75,9 @@ const TEXT = {
     enhancedPrompt: 'المطالبة المحسّنة',
     copied: 'تم النسخ!',
     copy: 'نسخ',
+    translate: 'ترجمة',
+    translating: 'جار الترجمة...',
+    original: 'الأصلي',
     recent: 'الأحدث',
     modes: {
       general: 'عام',
@@ -798,6 +807,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied]   = useState(false);
   const [history, setHistory] = useState([]);
+  const [translatedText, setTranslatedText] = useState('');
+  const [translateLang, setTranslateLang]   = useState(null);
+  const [translating, setTranslating]       = useState(false);
   const [error, setError]     = useState('');
   const [language, setLanguage] = useState('en');
   const [temporaryChat, setTemporaryChat] = useState(false);
@@ -1068,11 +1080,45 @@ export default function Home() {
     }
   };
 
+  const displayedResult = translateLang ? translatedText : result;
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(result).then(() => {
+    navigator.clipboard.writeText(displayedResult).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  // A fresh result clears any previous translation.
+  useEffect(() => {
+    setTranslateLang(null);
+    setTranslatedText('');
+  }, [result]);
+
+  const handleTranslate = async (targetLang) => {
+    if (targetLang === translateLang) return;
+    if (!targetLang) {
+      setTranslateLang(null);
+      setTranslatedText('');
+      return;
+    }
+    setTranslating(true);
+    setError('');
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: result, target: targetLang }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Translation failed');
+      setTranslatedText(data.result);
+      setTranslateLang(targetLang);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setTranslating(false);
+    }
   };
 
   const removeAttachment = () => {
@@ -1658,8 +1704,41 @@ export default function Home() {
                 {copied ? t.copied : t.copy}
               </button>
             </div>
-            <p style={{ color: '#e4e4e7', lineHeight: 1.7, fontSize: 14, whiteSpace: 'pre-wrap' }}>
-              {result}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+              <span style={{ fontSize: 12, color: '#71717a' }}>
+                {translating ? t.translating : `${t.translate}:`}
+              </span>
+              {[
+                { id: null, label: t.original },
+                { id: 'en', label: 'English' },
+                { id: 'tr', label: 'Türkçe' },
+                { id: 'ar', label: 'العربية' },
+              ].map((lng) => {
+                const active = translateLang === lng.id;
+                return (
+                  <button
+                    key={lng.label}
+                    onClick={() => handleTranslate(lng.id)}
+                    disabled={translating}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: 999,
+                      border: active ? '1px solid rgba(167,139,250,0.65)' : '1px solid #3f3f46',
+                      background: active ? 'rgba(124,58,237,0.16)' : '#09090b',
+                      color: active ? '#c4b5fd' : '#a1a1aa',
+                      fontSize: 12,
+                      cursor: translating ? 'default' : 'pointer',
+                      opacity: translating && !active ? 0.5 : 1,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {lng.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ color: '#e4e4e7', lineHeight: 1.7, fontSize: 14, whiteSpace: 'pre-wrap', direction: translateLang === 'ar' ? 'rtl' : 'ltr' }}>
+              {displayedResult}
             </p>
           </div>
         )}
