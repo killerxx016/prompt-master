@@ -107,8 +107,16 @@ function buildTextUserMessage(text, attachment) {
   return parts.join('\n\n');
 }
 
+function getClientIp(request) {
+  // On Vercel the real visitor IP is the first entry in x-forwarded-for.
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return request.headers.get('x-real-ip') || '';
+}
+
 export async function POST(request) {
   let requestLanguage = 'en';
+  const clientIp = getClientIp(request);
   try {
     const { text = '', mode = 'general', language = 'en', attachment = null } = await request.json();
     requestLanguage = language;
@@ -153,7 +161,7 @@ export async function POST(request) {
       messages,
     });
     const result = completion.choices[0].message.content;
-    return Response.json({ result });
+    return Response.json({ result, clientIp });
   } catch (error) {
     console.error('API error:', error);
     const status = error?.status || error?.response?.status;

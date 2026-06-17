@@ -955,7 +955,7 @@ export default function Home() {
       .catch(() => {});
   }, [session?.id]);
 
-  const saveToHistory = async (inputText, resultText, selectedMode) => {
+  const saveToHistory = async (inputText, resultText, selectedMode, clientIp) => {
     if (session) {
       try {
         const saved = await clsPromptBusiness.CreateNewPrompt({
@@ -963,6 +963,7 @@ export default function Home() {
           original_prompt: inputText,
           improved_prompt: resultText,
           mode: selectedMode,
+          ip: clientIp,
         });
         const normalized = {
           id: saved.generated_id,
@@ -1059,7 +1060,7 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data.result);
       const historyLabel = userText || (attachedItem ? `Uploaded ${attachedItem.kind}` : '');
-      await saveToHistory(historyLabel, data.result, mode);
+      await saveToHistory(historyLabel, data.result, mode, data.clientIp);
     } catch (err) {
       setError(err.message);
     } finally {
