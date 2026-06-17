@@ -476,6 +476,7 @@ const CATEGORY_ICONS = {
   Programming: '< />',
   Writing: '\u270D',
   Marketing: '\u25C8',
+  Trends: '\u2197',
   Saved: '\u2605',
 };
 
@@ -550,6 +551,7 @@ const SUGGESTION_CATEGORIES = [
   'Marketing',
 ];
 const SAVED_CATEGORY = 'Saved';
+const TRENDING_CATEGORY = 'Trends';
 
 const CATEGORY_TRANSLATIONS = {
   tr: {
@@ -560,6 +562,7 @@ const CATEGORY_TRANSLATIONS = {
     Programming: 'Programlama',
     Writing: 'Yaz\u0131',
     Marketing: 'Pazarlama',
+    Trends: 'Trendler',
     Saved: 'Kaydedilenler',
   },
   ar: {
@@ -570,6 +573,7 @@ const CATEGORY_TRANSLATIONS = {
     Programming: '\u0627\u0644\u0628\u0631\u0645\u062c\u0629',
     Writing: '\u0627\u0644\u0643\u062a\u0627\u0628\u0629',
     Marketing: '\u0627\u0644\u062a\u0633\u0648\u064a\u0642',
+    Trends: '\u0627\u0644\u0631\u0627\u0626\u062c',
     Saved: '\u0627\u0644\u0645\u062d\u0641\u0648\u0638\u0627\u062a',
   },
 };
@@ -836,18 +840,24 @@ export default function Home() {
   const filteredSuggestions = IDEA_SUGGESTIONS.filter((item) => suggestionMatches(item, librarySearchQuery, language));
   const savedSuggestionSet = new Set(savedSuggestionIds);
   const filteredSavedSuggestions = filteredSuggestions.filter((item) => savedSuggestionSet.has(item.id));
+  const filteredTrendingSuggestions = filteredSuggestions.filter((item) => item.trending);
+  const SPECIAL_CATEGORIES = [TRENDING_CATEGORY, SAVED_CATEGORY];
   const visibleCategories = [
+    { name: TRENDING_CATEGORY, count: filteredTrendingSuggestions.length },
     ...SUGGESTION_CATEGORIES.map((category) => ({
     name: category,
     count: filteredSuggestions.filter((item) => item.category === category).length,
     })),
     { name: SAVED_CATEGORY, count: filteredSavedSuggestions.length },
-  ].filter((category) => category.name === SAVED_CATEGORY || category.count > 0 || !librarySearchQuery.trim());
+  ].filter((category) => SPECIAL_CATEGORIES.includes(category.name) || category.count > 0 || !librarySearchQuery.trim());
   const activeCategory = visibleCategories.some((category) => category.name === selectedSuggestionCategory)
     ? selectedSuggestionCategory
-    : visibleCategories[0]?.name || SUGGESTION_CATEGORIES[0];
+    : visibleCategories.find((category) => !SPECIAL_CATEGORIES.includes(category.name))?.name
+      || visibleCategories[0]?.name || SUGGESTION_CATEGORIES[0];
   const categorySuggestions = activeCategory === SAVED_CATEGORY
     ? filteredSavedSuggestions
+    : activeCategory === TRENDING_CATEGORY
+    ? filteredTrendingSuggestions
     : filteredSuggestions.filter((item) => item.category === activeCategory);
   const selectedSuggestion = IDEA_SUGGESTIONS.find((item) => item.id === selectedSuggestionId) || null;
   const localizedSelectedSuggestion = selectedSuggestion ? localizedSuggestion(selectedSuggestion, language) : null;
@@ -2057,14 +2067,14 @@ export default function Home() {
                           role="button"
                           tabIndex={0}
                           onClick={() => {
-                            setSelectedSuggestionCategory(activeCategory === SAVED_CATEGORY ? SAVED_CATEGORY : item.category);
+                            setSelectedSuggestionCategory(SPECIAL_CATEGORIES.includes(activeCategory) ? activeCategory : item.category);
                             setSelectedSuggestionId(item.id);
                             setSuggestionCopiedId('');
                           }}
                           onKeyDown={(event) => {
                             if (event.key === 'Enter' || event.key === ' ') {
                               event.preventDefault();
-                              setSelectedSuggestionCategory(activeCategory === SAVED_CATEGORY ? SAVED_CATEGORY : item.category);
+                              setSelectedSuggestionCategory(SPECIAL_CATEGORIES.includes(activeCategory) ? activeCategory : item.category);
                               setSelectedSuggestionId(item.id);
                               setSuggestionCopiedId('');
                             }
