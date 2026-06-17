@@ -343,6 +343,21 @@ function AuthScreen({ onAuthenticated }) {
   );
 }
 
+const TEMPORARY_TEXT = {
+  en: {
+    button: 'Temporary Chat',
+    active: 'Temporary chat is on. This prompt will not be saved.',
+  },
+  tr: {
+    button: 'Ge\u00e7ici Sohbet',
+    active: 'Ge\u00e7ici sohbet a\u00e7\u0131k. Bu prompt kaydedilmeyecek.',
+  },
+  ar: {
+    button: '\u0645\u062d\u0627\u062f\u062b\u0629 \u0645\u0624\u0642\u062a\u0629',
+    active: '\u0627\u0644\u0645\u062d\u0627\u062f\u062b\u0629 \u0627\u0644\u0645\u0624\u0642\u062a\u0629 \u0645\u0641\u0639\u0644\u0629. \u0644\u0646 \u064a\u062a\u0645 \u062d\u0641\u0638 \u0647\u0630\u0627 \u0627\u0644\u0645\u0637\u0644\u0628.',
+  },
+};
+
 const SEARCH_TEXT = {
   en: {
     label: 'Search saved prompts',
@@ -785,6 +800,7 @@ export default function Home() {
   const [history, setHistory] = useState([]);
   const [error, setError]     = useState('');
   const [language, setLanguage] = useState('en');
+  const [temporaryChat, setTemporaryChat] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestionOpen, setSuggestionOpen] = useState(false);
@@ -803,6 +819,7 @@ export default function Home() {
   const fileInputRef = useRef(null);
 
   const t = TEXT[language];
+  const tempT = TEMPORARY_TEXT[language] || TEMPORARY_TEXT.en;
   const searchT = SEARCH_TEXT[language] || SEARCH_TEXT.en;
   const suggestionT = SUGGESTION_TEXT[language] || SUGGESTION_TEXT.en;
   const uploadT = UPLOAD_TEXT[language] || UPLOAD_TEXT.en;
@@ -1042,7 +1059,7 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data.result);
       const historyLabel = userText || (attachedItem ? `Uploaded ${attachedItem.kind}` : '');
-      await saveToHistory(historyLabel, data.result, mode);
+      if (!temporaryChat) await saveToHistory(historyLabel, data.result, mode);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1171,6 +1188,39 @@ export default function Home() {
           >
             Logout
           </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', gap: 8 }}>
+            <button
+              onClick={() => {
+                setTemporaryChat((current) => !current);
+                setInput('');
+                setResult('');
+                setError('');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '7px 12px',
+                borderRadius: 999,
+                border: temporaryChat ? '1px solid rgba(167,139,250,0.65)' : '1px solid #3f3f46',
+                background: temporaryChat ? 'rgba(124,58,237,0.16)' : '#18181b',
+                color: temporaryChat ? '#c4b5fd' : '#a1a1aa',
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 600,
+                transition: 'all 0.15s',
+              }}
+            >
+              <span aria-hidden="true">{temporaryChat ? '\u25CF' : '\u25CB'}</span>
+              {tempT.button}
+            </button>
+            {temporaryChat && (
+              <span style={{ color: '#a78bfa', fontSize: 11, maxWidth: 220, lineHeight: 1.4 }}>
+                {tempT.active}
+              </span>
+            )}
+          </div>
           <div ref={searchContainerRef} style={{ position: 'relative' }}>
             <button
               onClick={openSearch}
