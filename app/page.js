@@ -87,7 +87,7 @@ const MODES = [
 ];
 
 const SAVED_SUGGESTIONS_KEY = 'pm-saved-suggestions';
-const LOGO_SRC = '/prompt-master-brand.png';
+const LOGO_SRC = '/prompt-master-icon.png';
 
 function BrandLogo({ className = '' }) {
   return (
