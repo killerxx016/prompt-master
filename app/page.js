@@ -148,10 +148,10 @@ function InstagramLink() {
   return (
     <a
       className="instagram-link"
-      href="https://www.instagram.com/m.a5iz/"
+      href="https://www.instagram.com/promptmaster.website?igsh=b3ZsZmYxdjdmcTFt&utm_source=qr"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Open Instagram account @m.a5iz"
+      aria-label="Open Instagram account @promptmaster.website"
     >
       <InstagramIcon />
     </a>
