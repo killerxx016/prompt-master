@@ -336,8 +336,6 @@ function AuthScreen({ onAuthenticated }) {
             {isCreateMode ? 'Back to Login' : 'Create a New Account'}
           </button>
         </div>
-
-        <p className="auth-note">Your account is securely stored in Supabase.</p>
       </section>
     </main>
   );
